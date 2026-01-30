@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego del Ahorcado</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #1e1e2f;
+        color: white;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    .palabra {
+        font-size: 32px;
+        letter-spacing: 10px;
+        margin: 20px 0;
+    }
+
+    .letras button {
+        margin: 5px;
+        padding: 10px 15px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .letras button:disabled {
+        background: #555;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .info {
+        margin-top: 20px;
+        font-size: 18px;
+    }
+
+    .resultado {
+        font-size: 22px;
+        margin-top: 20px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎮 Juego del Ahorcado</h1>
+
+<div class="palabra" id="palabra"></div>
+
+<div class="letras" id="letras"></div>
+
+<div class="info">
+    ❤️ Intentos restantes: <span id="intentos"></span>
+</div>
+
+<div class="resultado" id="resultado"></div>
+
+<script>
+    const palabras = ["videojuego", "programacion", "html", "css", "javascript"];
+    const palabraSecreta = palabras[Math.floor(Math.random() * palabras.length)];
+    let letrasAdivinadas = [];
+    let intentos = 6;
+
+    const palabraDiv = document.getElementById("palabra");
+    const letrasDiv = document.getElementById("letras");
+    const intentosSpan = document.getElementById("intentos");
+    const resultadoDiv = document.getElementById("resultado");
+
+    function mostrarPalabra() {
+        palabraDiv.innerHTML = palabraSecreta
+            .split("")
+            .map(letra => letrasAdivinadas.includes(letra) ? letra : "_")
+            .join(" ");
+    }
+
+    function crearBotones() {
+        const abecedario = "abcdefghijklmnopqrstuvwxyz";
+        for (let letra of abecedario) {
+            const boton = document.createElement("button");
+            boton.textContent = letra;
+            boton.onclick = () => elegirLetra(letra, boton);
+            letrasDiv.appendChild(boton);
+        }
+    }
+
+    function elegirLetra(letra, boton) {
+        boton.disabled = true;
+        letrasAdivinadas.push(letra);
+
+        if (!palabraSecreta.includes(letra)) {
+            intentos--;
+        }
+
+        actualizarJuego();
+    }
+
+    function actualizarJuego() {
+        mostrarPalabra();
+        intentosSpan.textContent = intentos;
+
+        if (!palabraDiv.textContent.includes("_")) {
+            resultadoDiv.textContent = "🎉 ¡Ganaste!";
+            desactivarBotones();
+        }
+
+        if (intentos === 0) {
+            resultadoDiv.textContent = `💀 Perdiste. La palabra era "${palabraSecreta}"`;
+            desactivarBotones();
+        }
+    }
+
+    function desactivarBotones() {
+        document.querySelectorAll("button").forEach(b => b.disabled = true);
+    }
+
+    crearBotones();
+    actualizarJuego();
+</script>
+
+</body>
+</html>
