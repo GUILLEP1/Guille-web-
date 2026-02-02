@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Presencia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f2f5;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gestión de Presencia de Trabajadores</h1>
+
+    <!-- Sección Crear Trabajador -->
+    <div class="container">
+        <h2>Crear Trabajador</h2>
+        <form id="formTrabajador">
+            <input type="text" id="dni" placeholder="DNI" required>
+            <input type="text" id="nombre" placeholder="Nombre" required>
+            <input type="text" id="telefono" placeholder="Teléfono" required>
+            <input type="email" id="correo" placeholder="Correo Electrónico" required>
+            <button type="submit">Agregar Trabajador</button>
+            <span id="errorTrabajador" class="error"></span>
+        </form>
+
+        <h3>Lista de Trabajadores</h3>
+        <table id="tablaTrabajadores">
+            <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Sección Registrar Presencia -->
+    <div class="container">
+        <h2>Registrar Presencia</h2>
+        <form id="formPresencia">
+            <input type="text" id="dniPresencia" placeholder="DNI" required>
+            <input type="date" id="fecha" required>
+            <input type="time" id="hora" required>
+            <button type="submit">Registrar Presencia</button>
+            <span id="errorPresencia" class="error"></span>
+        </form>
+
+        <h3>Lista de Presencias</h3>
+        <table id="tablaPresencias">
+            <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Inicializar datos en LocalStorage si no existen
+        if(!localStorage.getItem('trabajadores')) localStorage.setItem('trabajadores', JSON.stringify([]));
+        if(!localStorage.getItem('presencias')) localStorage.setItem('presencias', JSON.stringify([]));
+
+        const formTrabajador = document.getElementById('formTrabajador');
+        const formPresencia = document.getElementById('formPresencia');
+        const tablaTrabajadores = document.querySelector('#tablaTrabajadores tbody');
+        const tablaPresencias = document.querySelector('#tablaPresencias tbody');
+        const errorTrabajador = document.getElementById('errorTrabajador');
+        const errorPresencia = document.getElementById('errorPresencia');
+
+        // Función para mostrar lista de trabajadores
+        function mostrarTrabajadores() {
+            const trabajadores = JSON.parse(localStorage.getItem('trabajadores'));
+            tablaTrabajadores.innerHTML = '';
+            trabajadores.forEach(t => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${t.dni}</td><td>${t.nombre}</td><td>${t.telefono}</td><td>${t.correo}</td>`;
+                tablaTrabajadores.appendChild(row);
+            });
+        }
+
+        // Función para mostrar lista de presencias
+        function mostrarPresencias() {
+            const presencias = JSON.parse(localStorage.getItem('presencias'));
+            tablaPresencias.innerHTML = '';
+            presencias.forEach(p => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${p.dni}</td><td>${p.fecha}</td><td>${p.hora}</td>`;
+                tablaPresencias.appendChild(row);
+            });
+        }
+
+        // Agregar trabajador
+        formTrabajador.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorTrabajador.textContent = '';
+
+            const dni = document.getElementById('dni').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const correo = document.getElementById('correo').value.trim();
+
+            let trabajadores = JSON.parse(localStorage.getItem('trabajadores'));
+
+            // Validar DNI único
+            if(trabajadores.some(t => t.dni === dni)) {
+                errorTrabajador.textContent = 'El DNI ya existe.';
+                return;
+            }
+
+            trabajadores.push({ dni, nombre, telefono, correo });
+            localStorage.setItem('trabajadores', JSON.stringify(trabajadores));
+
+            formTrabajador.reset();
+            mostrarTrabajadores();
+        });
+
+        // Registrar presencia
+        formPresencia.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorPresencia.textContent = '';
+
+            const dni = document.getElementById('dniPresencia').value.trim();
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+
+            const trabajadores = JSON.parse(localStorage.getItem('trabajadores'));
+            if(!trabajadores.some(t => t.dni === dni)) {
+                errorPresencia.textContent = 'DNI no registrado.';
+                return;
+            }
+
+            let presencias = JSON.parse(localStorage.getItem('presencias'));
+            presencias.push({ dni, fecha, hora });
+            localStorage.setItem('presencias', JSON.stringify(presencias));
+
+            formPresencia.reset();
+            mostrarPresencias();
+        });
+
+        // Mostrar datos al cargar
+        mostrarTrabajadores();
+        mostrarPresencias();
+    </script>
+
+</body>
+</html>
